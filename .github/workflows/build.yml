@@ -40,15 +40,26 @@ jobs:
       run: |
         msbuild "handheld\project\win32\Debug\MinecraftWin32.vcxproj" /p:Configuration=Release /p:Platform=Win32 /m /p:WindowsTargetPlatformVersion=10.0
 
-    - name: Copy DLLs to Release
+    - name: Copy Data & DLLs
       shell: powershell
       run: |
+        $debugDir = "handheld\project\win32\Debug"
         $releaseDir = "handheld\project\win32\Debug\Release"
         $libBin = "handheld\lib\bin"
+        $dataSrc = "handheld\data"
+        $dataDst = "handheld\project\data"
+        # Copy DLLs to Debug
+        Copy-Item "$libBin\libEGL.dll" $debugDir -ErrorAction SilentlyContinue
+        Copy-Item "$libBin\libgles_cm.dll" $debugDir -ErrorAction SilentlyContinue
+        Copy-Item "$libBin\libpng12.dll" $debugDir -ErrorAction SilentlyContinue
+        Copy-Item "$libBin\zlib1.dll" $debugDir -ErrorAction SilentlyContinue
+        # Copy DLLs to Release
         Copy-Item "$libBin\libEGL.dll" $releaseDir -ErrorAction SilentlyContinue
         Copy-Item "$libBin\libgles_cm.dll" $releaseDir -ErrorAction SilentlyContinue
         Copy-Item "$libBin\libpng12.dll" $releaseDir -ErrorAction SilentlyContinue
         Copy-Item "$libBin\zlib1.dll" $releaseDir -ErrorAction SilentlyContinue
+        # Copy game data (exe looks for ../../data/ from handheld/project/win32/Debug/)
+        Copy-Item $dataSrc $dataDst -Recurse -Force
 
     - name: Upload Debug
       uses: actions/upload-artifact@v4
@@ -57,6 +68,7 @@ jobs:
         path: |
           handheld\project\win32\Debug\MinecraftWin32.exe
           handheld\project\win32\Debug\*.dll
+          handheld\project\data\**
 
     - name: Upload Release
       uses: actions/upload-artifact@v4
@@ -65,3 +77,19 @@ jobs:
         path: |
           handheld\project\win32\Debug\Release\MinecraftWin32.exe
           handheld\project\win32\Debug\Release\*.dll
+          handheld\project\data\**
+
+    - name: Package Release
+      shell: powershell
+      run: |
+        Compress-Archive -Path "handheld\project\win32\Debug\Release\*", "handheld\project\data" -DestinationPath "MinecraftPE-0.6.1-win32.zip"
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      if: github.event_name != 'pull_request'
+      with:
+        name: Build #${{ github.run_number }}
+        tag_name: build-${{ github.run_number }}
+        files: MinecraftPE-0.6.1-win32.zip
+        prerelease: true
+        generate_release_notes: true
