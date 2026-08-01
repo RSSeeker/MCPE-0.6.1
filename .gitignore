@@ -11,6 +11,7 @@ build_simple.bat
 build.ps1
 fix_paths.py
 git_check.py
+check_files.py
 
 # Build output
 *.exe

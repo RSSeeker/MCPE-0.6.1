@@ -1,0 +1,73 @@
+name: Build MCPE 0.6.1
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Fix PlatformToolset (v145 -> v143)
+      shell: powershell
+      run: |
+        $files = @(
+          "handheld\project\win32\Debug\MinecraftWin32.vcxproj",
+          "handheld\project\win32_gl\MinecraftWin32_GL.vcxproj"
+        )
+        foreach ($f in $files) {
+          (Get-Content $f) -replace '<PlatformToolset>v145</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>' | Set-Content $f
+        }
+
+    - name: Fix GL project paths
+      shell: powershell
+      run: |
+        $f = "handheld\project\win32_gl\MinecraftWin32_GL.vcxproj"
+        (Get-Content $f) -replace '\.\.\\\.\.\\src\\', '..\..\..\src\' | Set-Content $f
+        (Get-Content $f) -replace '\.\.\\\.\.\\lib\\', '..\..\..\lib\' | Set-Content $f
+
+    - name: Build Debug
+      shell: powershell
+      run: |
+        msbuild "handheld\project\win32\Debug\MinecraftWin32.sln" /p:Configuration=Debug /p:Platform=Win32 /m
+
+    - name: Build Release
+      shell: powershell
+      run: |
+        msbuild "handheld\project\win32\Debug\MinecraftWin32.sln" /p:Configuration=Release /p:Platform=Win32 /m
+
+    - name: Copy DLLs to Release
+      shell: powershell
+      run: |
+        $releaseDir = "handheld\project\win32\Debug\Release"
+        $libBin = "handheld\lib\bin"
+        Copy-Item "$libBin\libEGL.dll" $releaseDir -ErrorAction SilentlyContinue
+        Copy-Item "$libBin\libgles_cm.dll" $releaseDir -ErrorAction SilentlyContinue
+        Copy-Item "$libBin\libpng12.dll" $releaseDir -ErrorAction SilentlyContinue
+        Copy-Item "$libBin\zlib1.dll" $releaseDir -ErrorAction SilentlyContinue
+
+    - name: Upload Debug
+      uses: actions/upload-artifact@v4
+      with:
+        name: MinecraftWin32-Debug
+        path: |
+          handheld\project\win32\Debug\MinecraftWin32.exe
+          handheld\project\win32\Debug\*.dll
+
+    - name: Upload Release
+      uses: actions/upload-artifact@v4
+      with:
+        name: MinecraftWin32-Release
+        path: |
+          handheld\project\win32\Debug\Release\MinecraftWin32.exe
+          handheld\project\win32\Debug\Release\*.dll
