@@ -24,8 +24,10 @@ jobs:
         $vcxproj = "handheld\project\win32\Debug\MinecraftWin32.vcxproj"
         $content = [System.IO.File]::ReadAllText($vcxproj)
         $content = $content.Replace('<PlatformToolset>v145</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>')
-        $content = $content.Replace('$(WindowsSdkDir)lib', '$(WindowsSdkDir)Lib\$(WindowsTargetPlatformVersion)\um\x86')
         $content = $content.Replace('</RootNamespace>', "</RootNamespace>`n    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>")
+        $oldLibPath = '..\..\..\lib\lib;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib'
+        $newLibPath = '..\..\..\lib\lib;$(LibraryPath)'
+        $content = $content.Replace($oldLibPath, $newLibPath)
         [System.IO.File]::WriteAllText($vcxproj, $content)
 
     - name: Build Debug
