@@ -22,14 +22,11 @@ jobs:
       shell: powershell
       run: |
         $vcxproj = "handheld\project\win32\Debug\MinecraftWin32.vcxproj"
-        $content = Get-Content $vcxproj -Raw
-        # Fix PlatformToolset v145 -> v143
-        $content = $content -replace '<PlatformToolset>v145</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>'
-        # Fix Release LibraryPath: $(WindowsSdkDir)lib -> $(WindowsSdkDir)Lib\10.0\um\x86
-        $content = $content -replace '\$\(WindowsSdkDir\)lib', '$(WindowsSdkDir)Lib\$(WindowsTargetPlatformVersion)\um\x86'
-        # Add WindowsTargetPlatformVersion
-        $content = $content -replace '</RootNamespace>', '</RootNamespace>' + "`n    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>"
-        Set-Content $vcxproj $content
+        $content = [System.IO.File]::ReadAllText($vcxproj)
+        $content = $content.Replace('<PlatformToolset>v145</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>')
+        $content = $content.Replace('$(WindowsSdkDir)lib', '$(WindowsSdkDir)Lib\$(WindowsTargetPlatformVersion)\um\x86')
+        $content = $content.Replace('</RootNamespace>', "</RootNamespace>`n    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>")
+        [System.IO.File]::WriteAllText($vcxproj, $content)
 
     - name: Build Debug
       shell: powershell
