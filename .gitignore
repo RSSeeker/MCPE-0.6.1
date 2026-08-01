@@ -8,7 +8,9 @@ __pycache__/
 build.py
 build.bat
 build_simple.bat
+build.ps1
 fix_paths.py
+git_check.py
 
 # Build output
 *.exe
@@ -38,6 +40,7 @@ fix_paths.py
 # Build output subdirectories (inside the Debug folder)
 MinecraftWin32/Debug/
 MinecraftWin32_GL/Debug/
+handheld/project/win32/Debug/games/
 
 # Data junction (symlink to handheld/data)
 handheld/project/data/
