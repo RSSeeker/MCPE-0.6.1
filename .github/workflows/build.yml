@@ -81,16 +81,20 @@ jobs:
           handheld\project\win32\Debug\Release\*.dll
           handheld\project\data\**
 
-    - name: Package Release
+    - name: Package
       shell: powershell
       run: |
         $pkg = "package"
         $exeDir = "$pkg\project\win32\Debug"
         $dataDir = "$pkg\project\data"
+        $libBin = "handheld\lib\bin"
         New-Item -ItemType Directory -Path $exeDir -Force
-        # Copy Release exe + DLLs
-        Copy-Item "handheld\project\win32\Debug\Release\MinecraftWin32.exe" $exeDir
-        Copy-Item "handheld\project\win32\Debug\Release\*.dll" $exeDir
+        # Copy Debug exe + DLLs
+        Copy-Item "handheld\project\win32\Debug\MinecraftWin32.exe" $exeDir
+        Copy-Item "handheld\project\win32\Debug\*.dll" $exeDir
+        # Copy VLD DLLs for Debug build
+        Copy-Item "$libBin\vld_win32\vld_x86.dll" $exeDir -ErrorAction SilentlyContinue
+        Copy-Item "$libBin\vld_win32\dbghelp.dll" $exeDir -ErrorAction SilentlyContinue
         # Copy game data
         Copy-Item "handheld\project\data" $dataDir -Recurse -Force
         Compress-Archive -Path "$pkg\*" -DestinationPath "MinecraftPE-0.6.1-win32.zip"
