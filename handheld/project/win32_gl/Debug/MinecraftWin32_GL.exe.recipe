@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>D:\vscode\MCPE-0.6.1-leaked\handheld\project\win32_gl\Debug\MinecraftWin32_GL.exe</FullPath>
+      <FullPath>D:\vscode\MCPE-0.6.1-leaked\handheld\project\win32\Debug\Debug\MinecraftWin32_GL.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

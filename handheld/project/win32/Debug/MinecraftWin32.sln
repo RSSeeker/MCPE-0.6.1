@@ -5,7 +5,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MinecraftWin32", "Minecraft
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{57B259AC-F044-44F2-A67D-DA49970BED5D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MinecraftWin32_GL", "..\win32_gl\MinecraftWin32_GL.vcxproj", "{19B34E47-B11C-E628-ED97-698E93339EA3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MinecraftWin32_GL", "..\..\win32_gl\MinecraftWin32_GL.vcxproj", "{19B34E47-B11C-E628-ED97-698E93339EA3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

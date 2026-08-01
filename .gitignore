@@ -1,0 +1,52 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Build scripts (generated)
+build.py
+build.bat
+build_simple.bat
+fix_paths.py
+
+# Build output
+*.exe
+*.pdb
+*.obj
+*.ilk
+*.exp
+*.tlog
+*.lastbuildstate
+*.unsuccessfulbuild
+*.log
+*.idb
+*.sdf
+*.opensdf
+*.suo
+*.ipch
+*.iobj
+*.ipdb
+*.res
+*.aps
+
+# Visual Studio
+*.user
+.vs/
+.vscode/
+
+# Build output subdirectories (inside the Debug folder)
+MinecraftWin32/Debug/
+MinecraftWin32_GL/Debug/
+
+# Data junction (symlink to handheld/data)
+handheld/project/data/
+
+# Temporary files
+/build_result.txt
+/build_log.txt
+/build_error.txt
+/build_output.txt
+/vs_dirs.txt
+/root_files.txt
+/新建 文本文档.txt
