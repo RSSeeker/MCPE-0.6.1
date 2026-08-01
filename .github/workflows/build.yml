@@ -18,20 +18,28 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    - name: Fix PlatformToolset (v145 -> v143)
+    - name: Fix vcxproj
       shell: powershell
       run: |
-        (Get-Content "handheld\project\win32\Debug\MinecraftWin32.vcxproj") -replace '<PlatformToolset>v145</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>' | Set-Content "handheld\project\win32\Debug\MinecraftWin32.vcxproj"
+        $vcxproj = "handheld\project\win32\Debug\MinecraftWin32.vcxproj"
+        $content = Get-Content $vcxproj -Raw
+        # Fix PlatformToolset v145 -> v143
+        $content = $content -replace '<PlatformToolset>v145</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>'
+        # Fix Release LibraryPath: $(WindowsSdkDir)lib -> $(WindowsSdkDir)Lib\10.0\um\x86
+        $content = $content -replace '\$\(WindowsSdkDir\)lib', '$(WindowsSdkDir)Lib\$(WindowsTargetPlatformVersion)\um\x86'
+        # Add WindowsTargetPlatformVersion
+        $content = $content -replace '</RootNamespace>', '</RootNamespace>' + "`n    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>"
+        Set-Content $vcxproj $content
 
     - name: Build Debug
       shell: powershell
       run: |
-        msbuild "handheld\project\win32\Debug\MinecraftWin32.vcxproj" /p:Configuration=Debug /p:Platform=Win32 /m
+        msbuild "handheld\project\win32\Debug\MinecraftWin32.vcxproj" /p:Configuration=Debug /p:Platform=Win32 /m /p:WindowsTargetPlatformVersion=10.0
 
     - name: Build Release
       shell: powershell
       run: |
-        msbuild "handheld\project\win32\Debug\MinecraftWin32.vcxproj" /p:Configuration=Release /p:Platform=Win32 /m
+        msbuild "handheld\project\win32\Debug\MinecraftWin32.vcxproj" /p:Configuration=Release /p:Platform=Win32 /m /p:WindowsTargetPlatformVersion=10.0
 
     - name: Copy DLLs to Release
       shell: powershell
