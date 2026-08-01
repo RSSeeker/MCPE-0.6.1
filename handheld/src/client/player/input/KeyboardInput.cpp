@@ -62,4 +62,3 @@ void KeyboardInput::tick( Player* player )
 
 	//printf("\n>- %f %f\n", xa, ya);
 }
-
