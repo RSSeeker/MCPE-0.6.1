@@ -84,7 +84,16 @@ jobs:
     - name: Package Release
       shell: powershell
       run: |
-        Compress-Archive -Path "handheld\project\win32\Debug\Release\*", "handheld\project\data" -DestinationPath "MinecraftPE-0.6.1-win32.zip"
+        $pkg = "package"
+        $exeDir = "$pkg\project\win32\Debug"
+        $dataDir = "$pkg\project\data"
+        New-Item -ItemType Directory -Path $exeDir -Force
+        # Copy Release exe + DLLs
+        Copy-Item "handheld\project\win32\Debug\Release\MinecraftWin32.exe" $exeDir
+        Copy-Item "handheld\project\win32\Debug\Release\*.dll" $exeDir
+        # Copy game data
+        Copy-Item "handheld\project\data" $dataDir -Recurse -Force
+        Compress-Archive -Path "$pkg\*" -DestinationPath "MinecraftPE-0.6.1-win32.zip"
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
