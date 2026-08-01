@@ -21,30 +21,17 @@ jobs:
     - name: Fix PlatformToolset (v145 -> v143)
       shell: powershell
       run: |
-        $files = @(
-          "handheld\project\win32\Debug\MinecraftWin32.vcxproj",
-          "handheld\project\win32_gl\MinecraftWin32_GL.vcxproj"
-        )
-        foreach ($f in $files) {
-          (Get-Content $f) -replace '<PlatformToolset>v145</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>' | Set-Content $f
-        }
-
-    - name: Fix GL project paths
-      shell: powershell
-      run: |
-        $f = "handheld\project\win32_gl\MinecraftWin32_GL.vcxproj"
-        (Get-Content $f) -replace '\.\.\\\.\.\\src\\', '..\..\..\src\' | Set-Content $f
-        (Get-Content $f) -replace '\.\.\\\.\.\\lib\\', '..\..\..\lib\' | Set-Content $f
+        (Get-Content "handheld\project\win32\Debug\MinecraftWin32.vcxproj") -replace '<PlatformToolset>v145</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>' | Set-Content "handheld\project\win32\Debug\MinecraftWin32.vcxproj"
 
     - name: Build Debug
       shell: powershell
       run: |
-        msbuild "handheld\project\win32\Debug\MinecraftWin32.sln" /p:Configuration=Debug /p:Platform=Win32 /m
+        msbuild "handheld\project\win32\Debug\MinecraftWin32.vcxproj" /p:Configuration=Debug /p:Platform=Win32 /m
 
     - name: Build Release
       shell: powershell
       run: |
-        msbuild "handheld\project\win32\Debug\MinecraftWin32.sln" /p:Configuration=Release /p:Platform=Win32 /m
+        msbuild "handheld\project\win32\Debug\MinecraftWin32.vcxproj" /p:Configuration=Release /p:Platform=Win32 /m
 
     - name: Copy DLLs to Release
       shell: powershell
