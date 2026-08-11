@@ -2,6 +2,7 @@
 #define APPPLATFORM_WIN32_H__
 
 #include "AppPlatform.h"
+#include "bootstrap_win32.h"
 #include "platform/log.h"
 #include "client/renderer/gles.h"
 #include "world/level/storage/FolderMethods.h"
@@ -22,7 +23,7 @@ public:
     }
 
 	BinaryBlob readAssetFile(const std::string& filename) {
-		FILE* fp = fopen(("../../data/" + filename).c_str(), "r");
+		FILE* fp = fopen(resolveAssetPath(filename).c_str(), "r");
 		if (!fp)
 			return BinaryBlob();
 
@@ -50,7 +51,7 @@ public:
 	{
 		TextureData out;
 
-		std::string filename = textureFolder? "../../data/images/" + filename_
+		std::string filename = textureFolder? resolveAssetPath("images/" + filename_)
 											: filename_;
 		std::ifstream source(filename.c_str(), std::ios::binary);
 

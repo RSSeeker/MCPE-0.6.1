@@ -33,7 +33,8 @@ void LargeImageButton::render(Minecraft* minecraft, int xm, int ym) {
 
 	//minecraft->textures->loadAndBindTexture("gui/gui.png");
 	glColor4f2(1, 1, 1, 1);
-	bool hovered = active && (minecraft->useTouchscreen()? (_currentlyDown && xm >= x && ym >= y && xm < x + width && ym < y + height) : false);
+	bool inside = xm >= x && ym >= y && xm < x + width && ym < y + height;
+	bool hovered = active && (minecraft->useTouchscreen()? (_currentlyDown && inside) : inside);
 
 	//printf("ButtonId: %d - Hovered? %d (cause: %d, %d, %d, %d, <> %d, %d)\n", id, hovered, x, y, x+w, y+h, xm, ym);
 	//int yImage = getYImage(hovered || selected);

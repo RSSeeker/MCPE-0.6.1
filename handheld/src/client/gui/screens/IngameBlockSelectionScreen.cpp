@@ -192,6 +192,10 @@ void IngameBlockSelectionScreen::keyPressed(int eventKey)
 	if (eventKey == o.keyMenuOk.key)
 		selectSlotAndClose();
 
+	// Desktop: E toggles the inventory closed.
+	if (eventKey == o.keyBuild.key)
+		minecraft->setScreen(NULL);
+
 #ifdef RPI
 	if (eventKey == o.keyMenuCancel.key
 		||	eventKey == Keyboard::KEY_ESCAPE)

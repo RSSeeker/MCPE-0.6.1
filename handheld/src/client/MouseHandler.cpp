@@ -1,6 +1,10 @@
 #include "MouseHandler.h"
 #include "player/input/ITurnInput.h"
 
+#if defined(WIN32)
+#include "../bootstrap_win32.h"
+#endif
+
 #ifdef RPI
 #include <SDL/SDL.h>
 #endif
@@ -24,7 +28,9 @@ void MouseHandler::grab() {
 	xd = 0;
 	yd = 0;
 
-#if defined(RPI)
+#if defined(WIN32)
+	win32SetMouseCapture(true);
+#elif defined(RPI)
 	//LOGI("Grabbing input!\n");
 	SDL_WM_GrabInput(SDL_GRAB_ON);
 	SDL_ShowCursor(0);
@@ -32,7 +38,9 @@ void MouseHandler::grab() {
 }
 
 void MouseHandler::release() {
-#if defined(RPI)
+#if defined(WIN32)
+	win32SetMouseCapture(false);
+#elif defined(RPI)
 	//LOGI("Releasing input!\n");
 	SDL_WM_GrabInput(SDL_GRAB_OFF);
 	SDL_ShowCursor(1);

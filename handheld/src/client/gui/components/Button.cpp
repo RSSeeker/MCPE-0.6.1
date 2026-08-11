@@ -74,7 +74,9 @@ void Button::renderFace(Minecraft* mc, int xm, int ym) {
 	if (!active) {
 		drawCenteredString(font, msg, x + width / 2, y + (height - 8) / 2, 0xffa0a0a0);
 	} else {
-		if (hovered(mc, xm, ym) || selected) {
+		// Desktop: highlight only on mouse hover (the touch UI keeps its
+		// selected-tab highlight).
+		if (hovered(mc, xm, ym) || (mc->useTouchscreen() && selected)) {
 			drawCenteredString(font, msg, x + width / 2, y + (height - 8) / 2, 0xffffa0);
 		} else {
 			drawCenteredString(font, msg, x + width / 2, y + (height - 8) / 2, 0xe0e0e0);
@@ -88,14 +90,16 @@ void Button::renderBg( Minecraft* minecraft, int xm, int ym )
 	glColor4f2(1, 1, 1, 1);
 
 	//printf("ButtonId: %d - Hovered? %d (cause: %d, %d, %d, %d, <> %d, %d)\n", id, hovered, x, y, x+w, y+h, xm, ym);
-	int yImage = getYImage(selected || hovered(minecraft, xm, ym));;
+	bool isSelected = minecraft->useTouchscreen()? selected : false;
+	int yImage = getYImage(isSelected || hovered(minecraft, xm, ym));;
 
 	blit(x, y, 0, 46 + yImage * 20, width / 2, height, 0, 20);
 	blit(x + width / 2, y, 200 - width / 2, 46 + yImage * 20, width / 2, height, 0, 20);
 }
 
 bool Button::hovered(Minecraft* minecraft, int xm , int ym) {
-	return minecraft->useTouchscreen()? (_currentlyDown && isInside(xm, ym)) : false;
+	// Desktop: highlight whenever the mouse is over the button.
+	return minecraft->useTouchscreen()? (_currentlyDown && isInside(xm, ym)) : isInside(xm, ym);
 }
 
 bool Button::isInside( int xm, int ym ) {
@@ -143,7 +147,8 @@ TButton::TButton( int id, int x, int y, int w, int h, const std::string& msg )
 
 void TButton::renderBg( Minecraft* minecraft, int xm, int ym )
 {
-	bool hovered = active && (minecraft->useTouchscreen()? (_currentlyDown && xm >= x && ym >= y && xm < x + width && ym < y + height) : false);
+	bool inside = xm >= x && ym >= y && xm < x + width && ym < y + height;
+	bool hovered = active && (minecraft->useTouchscreen()? (_currentlyDown && inside) : inside);
 
 	minecraft->textures->loadAndBindTexture("gui/touchgui.png");
 

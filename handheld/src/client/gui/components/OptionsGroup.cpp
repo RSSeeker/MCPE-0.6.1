@@ -58,11 +58,21 @@ void OptionsGroup::createProgressSlider( const Options::Option* option, Minecraf
 									minecraft->options.getProgrssMax(option));
 	element->width = 100;
 	element->height = 20;
-	OptionsItem* item = new OptionsItem(label, element);
+	OptionsItem* item = new OptionsItem(I18n::get(option->getCaptionId()), element);
 	addChild(item);
 	setupPositions();
 }
 
 void OptionsGroup::createStepSlider( const Options::Option* option, Minecraft* minecraft ) {
-
+	std::vector<int> steps;
+	steps.push_back(0);
+	steps.push_back(1);
+	steps.push_back(2);
+	steps.push_back(3);
+	Slider* element = new Slider(minecraft, option, steps);
+	element->width = 100;
+	element->height = 20;
+	OptionsItem* item = new OptionsItem(I18n::get(option->getCaptionId()), element);
+	addChild(item);
+	setupPositions();
 }

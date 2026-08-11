@@ -13,5 +13,6 @@ float AppPlatform_win32::getPixelsPerMillimeter() {
 	return pixels / mm;
 }
 
-bool AppPlatform_win32::supportsTouchscreen()  { return true; }
+// Windows desktop build: full keyboard + mouse controls, no touch UI.
+bool AppPlatform_win32::supportsTouchscreen()  { return false; }
 bool AppPlatform_win32::hasBuyButtonWhenInvalidLicense() { return true; }

@@ -125,20 +125,12 @@ void GameRenderer::render(float a) {
 	TIMER_PUSH("mouse");
 	if (mc->player && mc->mouseGrabbed) {
         mc->mouseHandler.poll();
-        //printf("Controller.x,y : %f,%f\n", Controller::getX(0), Controller::getY(0));
 
-        float ss = mc->options.sensitivity * 0.6f + 0.2f;
-        float sens = (ss * ss * ss) * 8;
-        float xo = mc->mouseHandler.xd * sens * 4.f;
-        float yo = mc->mouseHandler.yd * sens * 4.f;
-
-		const float now = _tick + a;
-		float deltaT = now - _lastTickT;
-		if (deltaT > 3.0f) deltaT = 3.0f;
-		_lastTickT = now;
-
-		_rotX += xo;
-		_rotY += yo;
+        // Sensitivity slider range is 0..4 (default 1). The look multiplier
+        // is linear in the slider value: at 1 it equals the old maximum
+        // (0.8^3 * 8), at 4 it is 4x the old maximum.
+        float v = mc->options.sensitivity;
+        float sens = v * 4.096f;
 
         int yAxis = -1;
         if (mc->options.invertYMouse) yAxis = 1;
@@ -146,7 +138,12 @@ void GameRenderer::render(float a) {
 		bool screenCovering = mc->screen && !mc->screen->passEvents;
 		if (!screenCovering)
 		{
-			mc->player->turn(deltaT * _rotXlast, deltaT * _rotYlast * yAxis);
+			// Linear, frame-rate independent mouse look. The original code
+			// accumulated deltas per render frame, then applied a non-linear
+			// pow() curve once per tick - that made fast flicks overshoot and
+			// the turn rate vary with the frame rate.
+			mc->player->turn(mc->mouseHandler.xd * sens * 0.12f,
+							 mc->mouseHandler.yd * sens * 0.12f * yAxis);
 		}
     }
 

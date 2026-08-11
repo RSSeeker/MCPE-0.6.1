@@ -212,6 +212,9 @@ public:
 		if(item == &Option::DIFFICULTY) {
 			difficulty = value;
 		}
+		if(item == &Option::RENDER_DISTANCE) {
+			viewDistance = value;
+		}
 		notifyOptionUpdate(item, value);
 	}
 
@@ -247,6 +250,7 @@ public:
 
 	int getIntValue(const Option* item) {
 		if(item == &Option::DIFFICULTY) return difficulty;
+		if(item == &Option::RENDER_DISTANCE) return viewDistance;
 		return 0;
 	}
 

@@ -157,6 +157,10 @@ void Screen::keyPressed( int eventKey )
 		minecraft->setScreen(NULL);
 		//minecraft->grabMouse();
 	}
+	// Desktop: E closes the inventory / any open screen (same as ESC).
+	if (eventKey == minecraft->options.keyBuild.key) {
+		minecraft->setScreen(NULL);
+	}
 	if (minecraft->useTouchscreen())
 		return;
 

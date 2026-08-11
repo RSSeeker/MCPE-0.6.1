@@ -28,7 +28,7 @@ void Options::initDefaultValues() {
 
 	music = 1;
 	sound = 1;
-	sensitivity = 0.5f;
+	sensitivity = 1.0f;
 	invertYMouse = false;
 	viewDistance = 2;
 	bobView = true;
@@ -151,7 +151,7 @@ const float Options::SOUND_MAX_VALUE = 1.0f;
 const float Options::MUSIC_MIN_VALUE = 0.0f;
 const float Options::MUSIC_MAX_VALUE = 1.0f;
 const float Options::SENSITIVITY_MIN_VALUE = 0.0f;
-const float Options::SENSITIVITY_MAX_VALUE = 1.0f;
+const float Options::SENSITIVITY_MAX_VALUE = 4.0f;
 const float Options::PIXELS_PER_MILLIMETER_MIN_VALUE = 3.0f;
 const float Options::PIXELS_PER_MILLIMETER_MAX_VALUE = 4.0f;
 const int DIFFICULY_LEVELS[] = {
@@ -201,9 +201,7 @@ void Options::update()
         if (key == OptionStrings::Controls_Sensitivity) {
             float sens;
             if (readFloat(value, sens)) {
-                // sens is in range [0,1] with default/center at 0.5 (for aesthetics)
-                // We wanna map it to something like [0.3, 0.9] BUT keep 0.5 @ ~0.5...
-                sensitivity = 0.3f + std::pow(1.1f * sens, 1.3f) * 0.42f;
+                sensitivity = sens;
             }
         }
 		if (key == OptionStrings::Controls_InvertMouse) {

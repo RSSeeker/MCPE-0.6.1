@@ -17,6 +17,7 @@
 #include "../world/level/tile/Tile.h"
 #include "../world/level/storage/LevelStorageSource.h"
 #include "../world/level/storage/LevelStorage.h"
+#include "../world/item/crafting/Recipe.h"
 #include "player/input/KeyboardInput.h"
 #ifndef STANDALONE_SERVER
 #include "player/input/touchscreen/TouchInputHolder.h"
@@ -724,6 +725,17 @@ void Minecraft::tickInput() {
 				}
 			#endif
 			#if defined(WIN32)
+				if (key == options.keyBuild.key) {
+					// E: open / close inventory (creative item picker, survival 2x2 crafting)
+					if (screen) {
+						setScreen(NULL);
+					} else if (isCreativeMode()) {
+						screenChooser.setScreen(SCREEN_BLOCKSELECTION);
+					} else {
+						player->startCrafting((int)player->x, (int)player->y, (int)player->z, Recipe::SIZE_2X2);
+					}
+				}
+
 				if (key == Keyboard::KEY_F) {
 					options.isFlying = !options.isFlying;
 					player->noPhysics = options.isFlying;
@@ -897,7 +909,10 @@ void Minecraft::tickInput() {
 	handleMouseClick(buildHandled && bai.isInteract()
 		|| options.useMouseForDigging && Mouse::isButtonDown(MouseAction::ACTION_RIGHT));
 #else
-	handleMouseDown(MouseAction::ACTION_LEFT, isTryingToDestroyBlock || (buildHandled && bai.isInteract()));
+	// Only the destroy path may start block destruction. The original
+	// code OR'd the right-click build/interact intent in here, which made
+	// placing a block also break the targeted block.
+	handleMouseDown(MouseAction::ACTION_LEFT, isTryingToDestroyBlock);
 #endif
 
 	lastTickTime = getTimeMs();
@@ -1124,6 +1139,10 @@ void Minecraft::releaseMouse()
 
 bool Minecraft::useTouchscreen() {
 #ifdef RPI
+	return false;
+#endif
+#ifdef WIN32
+	// Windows desktop build always uses keyboard + mouse.
 	return false;
 #endif
 	return options.useTouchScreen || !_supportsNonTouchscreen;

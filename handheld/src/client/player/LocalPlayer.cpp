@@ -31,6 +31,7 @@
 #include "../../network/packet/AnimatePacket.h"
 #include "../../world/item/ArmorItem.h"
 #include "../../network/packet/PlayerArmorEquipmentPacket.h"
+#include <cstdio>
 
 //@note: doesn't work completely, since it doesn't care about stairs rotation
 static bool isJumpable(int tileId) {
@@ -74,13 +75,9 @@ void LocalPlayer::calculateFlight(float xa, float ya, float za) {
     ya = 0;
     za = za * minecraft->options.flySpeed;
 
-#ifdef ANDROID
-    if (Keyboard::isKeyDown(103)) ya = .2f * minecraft->options.flySpeed;
-    if (Keyboard::isKeyDown(102)) ya = -.2f * minecraft->options.flySpeed;
-#else
-    if (Keyboard::isKeyDown(Keyboard::KEY_E)) ya = .2f * minecraft->options.flySpeed;
-    if (Keyboard::isKeyDown(Keyboard::KEY_Q)) ya = -.2f * minecraft->options.flySpeed;
-#endif
+    // Desktop: space ascends, shift descends (same keys as creative flight).
+    if (input->wantUp) ya = .2f * minecraft->options.flySpeed;
+    if (input->wantDown) ya = -.2f * minecraft->options.flySpeed;
 
     flyX = 10 * smoothFlyX.getNewDeltaValue(xa, .35f * minecraft->options.sensitivity);
     flyY = 10 * smoothFlyY.getNewDeltaValue(ya, .35f * minecraft->options.sensitivity);

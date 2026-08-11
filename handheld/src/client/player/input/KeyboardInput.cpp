@@ -1,6 +1,7 @@
 #include "KeyboardInput.h"
 #include "../../Options.h"
 #include "../../../world/entity/player/Player.h"
+#include <cstdio>
 
 KeyboardInput::KeyboardInput( Options* options )
 {
@@ -52,7 +53,8 @@ void KeyboardInput::tick( Player* player )
 		ya *= 0.3f;
 	}
 
-	#ifdef RPI
+	#if defined(RPI) || defined(WIN32)
+		// Flying: hold space to ascend, hold shift to descend.
 		wantUp = jumping;
 		wantDown = sneaking;
 	#endif

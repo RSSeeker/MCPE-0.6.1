@@ -21,9 +21,26 @@
 #include "platform/input/Multitouch.h"
 #include "util/Mth.h"
 #include "AppPlatform_win32.h"
+#include "bootstrap_win32.h"
+
+// Game icon resource id (keep in sync with tools/pack_resources.ps1)
+#define IDI_APP 107
 
 static App* g_app = 0;
 static volatile bool g_running = true;
+
+// Translate Windows virtual-key codes to the game's legacy key codes.
+static int win32MapKey(unsigned int vk) {
+	switch (vk) {
+	case VK_SHIFT:   return 10; // some layouts/IMEs report the generic code
+	case VK_LSHIFT:  return 10; // Keyboard::KEY_LSHIFT
+	case VK_RSHIFT:  return 10;
+	case VK_CONTROL: return 17; // Keyboard::KEY_LCONTROL
+	case VK_LCONTROL: return 17; // Keyboard::KEY_LCONTROL
+	case VK_RCONTROL: return 17;
+	default: return (int)vk;
+	}
+}
 
 static int getBits(int bits, int startBitInclusive, int endBitExclusive, int shiftTruncate) {
 	int sum = 0;
@@ -71,7 +88,7 @@ LRESULT WINAPI windowProc ( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		if (wParam == 34) toggleResolutions(hWnd, +1);
 		
 		//if (wParam == 'Q') ((Minecraft*)g_app)->leaveGame();
-		Keyboard::feed((unsigned char) wParam, 1); //(unsigned char) getBits(lParam, 16, 23, 1)
+		Keyboard::feed((unsigned char) win32MapKey((unsigned int)wParam), 1);
 		if (wParam == VK_ESCAPE && g_app) {
 			g_app->handleBack(true);
 		}
@@ -82,7 +99,7 @@ LRESULT WINAPI windowProc ( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		return 0;
 	}
 	case WM_KEYUP: {
-		Keyboard::feed((unsigned char) wParam, 0); //(unsigned char) getBits(lParam, 16, 23, 1)
+		Keyboard::feed((unsigned char) win32MapKey((unsigned int)wParam), 0);
 		if (wParam == VK_ESCAPE && g_app) {
 			g_app->handleBack(false);
 		}
@@ -113,8 +130,42 @@ LRESULT WINAPI windowProc ( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		break;
 	}
 	case WM_MOUSEMOVE: {
-		Mouse::feed( MouseAction::ACTION_MOVE, 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-		Multitouch::feed(0, 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), 0);
+		win32HandleMouseMove(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		break;
+	}
+	case WM_INPUT: {
+		// Raw mouse deltas: acceleration-free, so look speed stays consistent.
+		UINT size = 0;
+		GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &size, sizeof(RAWINPUTHEADER));
+		if (size > 0 && size <= 64) {
+			BYTE buf[64];
+			if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, buf, &size, sizeof(RAWINPUTHEADER)) == size) {
+				RAWINPUT* raw = (RAWINPUT*)buf;
+				if (raw->header.dwType == RIM_TYPEMOUSE) {
+					win32HandleRawMouse(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
+				}
+			}
+		}
+		break;
+	}
+	case WM_MOUSEWHEEL: {
+		// Never feed (0,0) here: it would reset the mouse position used for
+		// look deltas and jerk the camera on the next frame.
+		short wheelDelta = (short)GET_WHEEL_DELTA_WPARAM(wParam);
+		static int wheelAccum = 0;
+		wheelAccum += wheelDelta;
+		int notches = wheelAccum / 120;
+		if (notches != 0) {
+			wheelAccum %= 120;
+			Mouse::feed(MouseAction::ACTION_WHEEL, 0,
+				Mouse::getX(), Mouse::getY(), 0, (short)notches);
+		}
+		break;
+	}
+	case WM_KILLFOCUS: {
+		// Release the mouse when the window loses focus (alt-tab etc.)
+		win32SetMouseCapture(false);
+		if (g_app) ((MAIN_CLASS*)g_app)->gameLostFocus();
 		break;
 	}
 	default:
@@ -148,7 +199,7 @@ void platform(HWND *result, int width, int height) {
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = hInstance;
-	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+	wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APP));
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = NULL;
 	wc.lpszMenuName = NULL;
@@ -158,7 +209,15 @@ void platform(HWND *result, int width, int height) {
 
 	AdjustWindowRectEx(&wRect, WS_OVERLAPPEDWINDOW, FALSE, WS_EX_APPWINDOW | WS_EX_WINDOWEDGE);
 
-	hwnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, "OGLES", "main", WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0, 0, wRect.right-wRect.left, wRect.bottom-wRect.top, NULL, NULL, hInstance, NULL);
+	hwnd = CreateWindowEx(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE, "OGLES", "Minecraft PE 0.6.1", WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, 0, 0, wRect.right-wRect.left, wRect.bottom-wRect.top, NULL, NULL, hInstance, NULL);
+	win32SetWindowHandle(hwnd);
+	// Register raw mouse input for consistent, acceleration-free look deltas.
+	RAWINPUTDEVICE rid;
+	rid.usUsagePage = 0x01; // Generic Desktop
+	rid.usUsage = 0x02;     // Mouse
+	rid.dwFlags = 0;        // Only receive while the window is foreground
+	rid.hwndTarget = hwnd;
+	RegisterRawInputDevices(&rid, 1, sizeof(rid));
 	*result = hwnd;
 }
 
@@ -221,6 +280,9 @@ int main(void) {
 	AppContext appContext;
 	MSG sMessage;
 
+	// Single-file bootstrap: extract embedded data + DLLs before anything else.
+	bootstrapSingleFile();
+
 #ifndef STANDALONE_SERVER
 
 	EGLint aEGLAttributes[] = {
@@ -276,8 +338,9 @@ int main(void) {
 	App* app = new MAIN_CLASS();
 
 	g_app = app;
-	((MAIN_CLASS*)g_app)->externalStoragePath = ".";
-	((MAIN_CLASS*)g_app)->externalCacheStoragePath = ".";
+	const std::string& exeDir = getExeDir();
+	((MAIN_CLASS*)g_app)->externalStoragePath = exeDir.empty()? "." : exeDir;
+	((MAIN_CLASS*)g_app)->externalCacheStoragePath = exeDir.empty()? "." : exeDir;
 	g_app->init(appContext);
 	g_app->setSize(appContext.platform->getScreenWidth(), appContext.platform->getScreenHeight());
 
@@ -320,6 +383,12 @@ int main(void) {
 #endif
 
 	return 0;
+}
+
+// Entry point used when the executable is built as a windowed app
+// (Release single-file build); the game itself always uses main().
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+	return main();
 }
 
 #endif /*MAIN_WIN32_H__*/

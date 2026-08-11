@@ -32,6 +32,7 @@ check_files.py
 *.ipdb
 *.res
 *.aps
+*.recipe
 
 # Visual Studio
 *.user
@@ -40,8 +41,15 @@ check_files.py
 
 # Build output subdirectories (inside the Debug folder)
 MinecraftWin32/Debug/
+MinecraftWin32/Release/
 MinecraftWin32_GL/Debug/
 handheld/project/win32/Debug/games/
+
+# Generated single-file pack resources
+handheld/project/win32/pack/
+
+# Final single-file executable output
+/dist/
 
 # Data junction (symlink to handheld/data)
 handheld/project/data/
