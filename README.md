@@ -11,7 +11,6 @@
 - Release 为窗口程序（不弹控制台），自带 MCPE 图标，窗口标题 "Minecraft PE 0.6.1"。
 - **存档跟随 exe**：`games\` 与 `options.txt` 生成在 exe 旁边，拷走整个 exe 即可带走进度。
 - `build.bat` 一键构建：`build.bat single`（单文件版，默认）/ `debug` / `gl`。
-- GitHub Actions 自动构建：输出单文件 exe 与完整压缩包，自动创建预发布（prerelease）。
 
 ### 操作方式（完全键盘 + 鼠标）
 
